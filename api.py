@@ -6,11 +6,12 @@ from flask import jsonify
 from flask_cors import CORS
 import logging
 import pdb
+from model import mongodb
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 CORS(app)
-mongo = PyMongo(app) 
+
 # @app.route('/', methods=['GET', 'POST'])
 # def home():
 #     # users = mongo.db.api.insert({"ss":3}) 
@@ -38,15 +39,17 @@ def checkRequestParemeter(requestData):
             # print dataOb['url'],"url\n"
             print type(dataOb.get('url'))
             # pdb.set_trace()
-            if dataOb.get('url')==None:
+            if dataOb.get('url')==None or dataOb.get('method')==None:
 
-                return jsonify({"msg":"url feil lose","code":400})
+                return jsonify({"msg":"url or method feil lose","code":400})
             else:
-                if dataOb['url']=="":
-                    return jsonify({"msg":"url for null","code":400})
+                if dataOb['url']=="" or dataOb['method']=="":
+                    pdb.set_trace()
+                    return jsonify({"msg":"url or method for null","code":400})
+                    pdb.set_trace()
                 else:
-                    print "\tto dict data:",type(dataOb),"\t",dataOb
-                    return ""
+                    # print "\tto dict data:",type(dataOb),"\t",dataOb
+                    return "zio"
                         
 
             # return ""
@@ -67,12 +70,52 @@ def apilist():
 
     # return dict(result='success',li=api )
     return json.dumps(api)
-
-@app.route('/api/saveapi')
-def saveapi():
+#reauest method of check
+def handelMethods(method,requestMethod):
+    if method==requestMethod:
+        print method,requestMethod,"t\n"
+        return True
+    else:
+        print method,requestMethod,"f\n"
+        #return requestMethod,"error  request method"
+        return jsonify({"msg":"error request method","code":400})
+        # return False
     
-    requestData=request.get_data()
-    return checkRequestParemeter(requestData)
+
+@app.route('/api/saveapi' ,methods=['GET', 'POST','PUT','DELETE','OPTIONS'])
+def saveapi():
+    # request.method=='POST'
+
+    if handelMethods('POST',request.method) or checkRequestParemeter(request.get_data()):
+        # return "ceshi1"
+        # requestData=
+        
+        link=mongodb.linkdb(app,config_prefix="MONGO")
+        if link:
+            print link
+            id=mongodb.findid(app)
+            print id,"id\n"
+            pdb.set_trace()
+            return "xx"
+            pdb.set_trace()
+
+        else:
+            pass
+            return mongodb.linkdb(app)
+        
+    else:
+        # return jsonify({"msg":"error request method","code":400})
+        # return "zio" 
+        # return "cuowufanfa"
+        if handelMethods('POST',request.method):
+            pass
+            return handelMethods('POST',request.method),
+        else:
+            return checkRequestParemeter(request.get_data())
+    
+    
+
+    # return 'ceshi'
 
     # if requestData=="":#why
     #     return json.dumps({"msg":"requestData for None","code":400})
@@ -126,7 +169,7 @@ def saveapi():
        
     # return render_template('index.html')
 
-if __name__ == '__main__':
-    app.run()
-    app.debug=true
+# if __name__ == '__main__':
+app.run(host='0.0.0.0',debug=True)
+    
     
